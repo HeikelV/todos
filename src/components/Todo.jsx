@@ -16,43 +16,67 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { DeleteIcon } from "@chakra-ui/icons";
-import React from "react";
+import React, { useState } from "react";
 import axios from "axios";
 
-export default function SingleTodo({fetchTodos, todo }) {
+export default function SingleTodo({ fetchTodos, todo }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = React.useRef();
   const toast = useToast();
 
+  const [task, setTask] = useState(todo.todo);
+
   const deleteTodo = async () => {
-    const { data } = await axios.delete("http://localhost:5000/todo/"+todo.id);
+    const { data } = await axios.delete(
+      "http://localhost:5000/todo/" + todo.id
+    );
     const deleted_todo = data.data;
 
     console.log(deleted_todo);
 
     toast({
-        title: "Deleted!",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    onClose()
-    fetchTodos()
-  }
+      title: "Deleted!",
+      status: "error",
+      duration: 3000,
+      isClosable: true,
+    });
+    onClose();
+    fetchTodos();
+  };
+
+  const set = (event) => {
+    setTask(event.target.value);
+  };
+
+  const updateTodo = async (event) => {
+    const { data } = await axios.put("http://localhost:5000/todo/" + todo.id, {
+      todo: event.target.value,
+    });
+    const updated_todo = data.data;
+
+    console.log(updated_todo);
+
+    toast({
+      title: "Updated!",
+      status: "warning",
+      duration: 3000,
+      isClosable: true,
+    });
+
+    fetchTodos();
+  };
 
   return (
-    <>
-      <Box borderWidth={1} p={4} marginBottom={5} borderRadius={15}>
-        <HStack w='100%'>
-          <Checkbox size="lg" colorScheme="orange"></Checkbox>
-          <Editable w='md' defaultValue={todo.todo}>
-            <EditablePreview />
-            <EditableTextarea />
-          </Editable>
-          <DeleteIcon color="red.500" onClick={onOpen} />
-        </HStack>
-      </Box>
-      
+    <Box borderWidth={1} p={4} borderRadius={15}>
+      <HStack w="100%">
+        <Checkbox size="lg" colorScheme="orange"></Checkbox>
+        <Editable w="md" defaultValue={task}>
+          <EditablePreview />
+          <EditableTextarea onChange={set} onBlur={updateTodo} />
+        </Editable>
+        <DeleteIcon color="red.500" onClick={onOpen} />
+      </HStack>
+
       <AlertDialog
         isOpen={isOpen}
         leastDestructiveRef={cancelRef}
@@ -79,6 +103,6 @@ export default function SingleTodo({fetchTodos, todo }) {
           </AlertDialogContent>
         </AlertDialogOverlay>
       </AlertDialog>
-    </>
+    </Box>
   );
 }
