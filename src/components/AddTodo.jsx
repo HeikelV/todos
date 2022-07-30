@@ -2,20 +2,18 @@ import { Button, Input, Spinner, Stack, useToast } from "@chakra-ui/react";
 import axios from "axios";
 import { useState } from "react";
 
-export default function Add({fetchTodos}) {
+export default function Add({ fetchTodos }) {
   const toast = useToast();
   const [todo, setTodo] = useState("");
   const [loading, setLoading] = useState(false);
 
   const addTodo = async () => {
     setLoading(true);
-    const { data } = await axios.post("http://localhost:5000/todo", {
+    await axios.post("http://localhost:5000/todo", {
       todo: todo,
       status: "Done",
     });
-    const added_todo = data.data;
 
-    console.log(added_todo);
     setLoading(false);
 
     toast({
@@ -26,12 +24,12 @@ export default function Add({fetchTodos}) {
     });
 
     fetchTodos();
-    setTodo('');
+    setTodo("");
   };
 
   const set = (event) => {
-    setTodo(event.target.value)
-  }
+    setTodo(event.target.value);
+  };
 
   return (
     <Stack align="center" direction="row" margin="5">

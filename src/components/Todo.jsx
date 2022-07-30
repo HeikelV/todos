@@ -14,9 +14,10 @@ import {
   AlertDialogOverlay,
   Button,
   useToast,
+  Badge,
 } from "@chakra-ui/react";
 import { DeleteIcon } from "@chakra-ui/icons";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 export default function SingleTodo({ fetchTodos, todo }) {
@@ -25,14 +26,14 @@ export default function SingleTodo({ fetchTodos, todo }) {
   const toast = useToast();
 
   const [task, setTask] = useState(todo.todo);
+  const temp = todo.todo;
+
+  const todo_status = todo.status == "Pending" ? false : true;
+
+  const [status, setStatus] = useState(todo_status);
 
   const deleteTodo = async () => {
-    const { data } = await axios.delete(
-      "http://localhost:5000/todo/" + todo.id
-    );
-    const deleted_todo = data.data;
-
-    console.log(deleted_todo);
+    await axios.delete("http://localhost:5000/todo/" + todo.id);
 
     toast({
       title: "Deleted!",
@@ -49,12 +50,24 @@ export default function SingleTodo({ fetchTodos, todo }) {
   };
 
   const updateTodo = async (event) => {
-    const { data } = await axios.put("http://localhost:5000/todo/" + todo.id, {
-      todo: event.target.value,
-    });
-    const updated_todo = data.data;
+    if (temp !== task) {
+      await axios.put("http://localhost:5000/todo/" + todo.id, {
+        todo: event.target.value,
+      });
 
-    console.log(updated_todo);
+      toast({
+        title: "Updated!",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+      });
+
+      fetchTodos();
+    }
+  };
+
+  const complete = async (event) => {
+    await axios.patch("http://localhost:5000/todo/" + todo.id);
 
     toast({
       title: "Updated!",
@@ -63,18 +76,25 @@ export default function SingleTodo({ fetchTodos, todo }) {
       isClosable: true,
     });
 
+    setStatus();
     fetchTodos();
   };
 
   return (
     <Box borderWidth={1} p={4} borderRadius={15}>
       <HStack w="100%">
-        <Checkbox size="lg" colorScheme="orange"></Checkbox>
+        <Checkbox
+          size="lg"
+          colorScheme="green"
+          isChecked={todo_status}
+          onChange={complete}
+        ></Checkbox>
         <Editable w="md" defaultValue={task}>
           <EditablePreview />
           <EditableTextarea onChange={set} onBlur={updateTodo} />
         </Editable>
-        <DeleteIcon color="red.500" onClick={onOpen} />
+        <Badge w={20}>{todo.status}</Badge>
+        <DeleteIcon color="red.500" onClick={onOpen} cursor="pointer" />
       </HStack>
 
       <AlertDialog
